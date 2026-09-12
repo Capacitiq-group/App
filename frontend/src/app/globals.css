@@ -44,79 +44,94 @@
     --radius-xl: calc(var(--radius) + 4px);
 }
 
+/*
+ * Brand palette reference (source: brand color-card asset):
+ *   Anti-Flesh White  #EFEFEF  oklch(0.952 0     89.9)
+ *   Lemon Lime        #E8FF40  oklch(0.952 0.201 116.5)
+ *   Dark Green        #203627  oklch(0.309 0.039 153.8)
+ *   Sky Blue          #9DC4D5  oklch(0.798 0.048 226.3)
+ *
+ * --color-brand backs every hardcoded `bg-brand text-white` usage across the
+ * app (button.tsx brand variant, action bar buttons, upload/encoding steps,
+ * etc.) — it must stay a color dark enough for white text to sit on, so it
+ * maps to Dark Green rather than Lemon Lime. Lemon Lime is used instead as
+ * --primary (paired with its own --primary-foreground, so contrast is
+ * guaranteed wherever the semantic primary/primary-foreground pair is used)
+ * and as standalone glow/highlight accents below.
+ */
 @theme {
-    --color-brand: rgba(255, 115, 0, 1);
+    --color-brand: rgba(32, 54, 39, 1);
 }
 
 :root {
     --radius: 0.625rem;
-    --background: oklch(0.98 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
+    --background: oklch(0.952 0 89.9);
+    --foreground: oklch(0.309 0.039 153.8);
+    --card: oklch(0.99 0 0);
+    --card-foreground: oklch(0.309 0.039 153.8);
+    --popover: oklch(0.99 0 0);
+    --popover-foreground: oklch(0.309 0.039 153.8);
+    --primary: oklch(0.952 0.201 116.5);
+    --primary-foreground: oklch(0.309 0.039 153.8);
+    --secondary: oklch(0.798 0.048 226.3);
+    --secondary-foreground: oklch(0.309 0.039 153.8);
+    --muted: oklch(0.91 0.01 153.8);
+    --muted-foreground: oklch(0.5 0.02 153.8);
+    --accent: oklch(0.93 0.03 116.5);
+    --accent-foreground: oklch(0.309 0.039 153.8);
     --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
-    --chart-1: oklch(0.646 0.222 41.116);
-    --chart-2: oklch(0.6 0.118 184.704);
-    --chart-3: oklch(0.398 0.07 227.392);
+    --border: oklch(0.88 0.01 153.8);
+    --input: oklch(0.88 0.01 153.8);
+    --ring: oklch(0.45 0.05 153.8);
+    --chart-1: oklch(0.952 0.201 116.5);
+    --chart-2: oklch(0.798 0.048 226.3);
+    --chart-3: oklch(0.309 0.039 153.8);
     --chart-4: oklch(0.828 0.189 84.429);
     --chart-5: oklch(0.769 0.188 70.08);
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
-    --thumb: rgba(22, 24, 35, 0.06);
+    --sidebar: oklch(0.99 0 0);
+    --sidebar-foreground: oklch(0.309 0.039 153.8);
+    --sidebar-primary: oklch(0.952 0.201 116.5);
+    --sidebar-primary-foreground: oklch(0.309 0.039 153.8);
+    --sidebar-accent: oklch(0.93 0.03 116.5);
+    --sidebar-accent-foreground: oklch(0.309 0.039 153.8);
+    --sidebar-border: oklch(0.88 0.01 153.8);
+    --sidebar-ring: oklch(0.45 0.05 153.8);
+    --thumb: rgba(32, 54, 39, 0.08);
 }
 
 .dark {
-    --background: oklch(0.1 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.13 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.13 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
+    --background: oklch(0.16 0.02 153.8);
+    --foreground: oklch(0.952 0 89.9);
+    --card: oklch(0.309 0.039 153.8);
+    --card-foreground: oklch(0.952 0 89.9);
+    --popover: oklch(0.309 0.039 153.8);
+    --popover-foreground: oklch(0.952 0 89.9);
+    --primary: oklch(0.952 0.201 116.5);
+    --primary-foreground: oklch(0.309 0.039 153.8);
+    --secondary: oklch(0.4 0.03 226.3);
+    --secondary-foreground: oklch(0.952 0 89.9);
+    --muted: oklch(0.26 0.02 153.8);
+    --muted-foreground: oklch(0.75 0.02 153.8);
+    --accent: oklch(0.3 0.05 116.5);
+    --accent-foreground: oklch(0.952 0.201 116.5);
     --destructive: oklch(0.704 0.191 22.216);
     --border: oklch(1 0 0 / 10%);
     --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.488 0.243 264.376);
-    --chart-2: oklch(0.696 0.17 162.48);
-    --chart-3: oklch(0.769 0.188 70.08);
+    --ring: oklch(0.952 0.201 116.5);
+    --chart-1: oklch(0.952 0.201 116.5);
+    --chart-2: oklch(0.798 0.048 226.3);
+    --chart-3: oklch(0.75 0.05 153.8);
     --chart-4: oklch(0.627 0.265 303.9);
     --chart-5: oklch(0.645 0.246 16.439);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
+    --sidebar: oklch(0.2 0.03 153.8);
+    --sidebar-foreground: oklch(0.952 0 89.9);
+    --sidebar-primary: oklch(0.952 0.201 116.5);
+    --sidebar-primary-foreground: oklch(0.309 0.039 153.8);
+    --sidebar-accent: oklch(0.3 0.05 116.5);
+    --sidebar-accent-foreground: oklch(0.952 0.201 116.5);
     --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
-    --thumb: rgba(255, 255, 255, 0.08);
+    --sidebar-ring: oklch(0.952 0.201 116.5);
+    --thumb: rgba(232, 255, 64, 0.1);
 }
 
 @theme inline {
@@ -171,7 +186,7 @@
     @apply h-11 w-full rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-base
            text-neutral-900 placeholder:text-neutral-400 transition-all duration-300 ease-out
            dark:border-white/10 dark:bg-white/5 dark:text-neutral-100 dark:placeholder:text-neutral-500
-           focus:outline-none focus:ring-0 focus:ring-offset-0 focus:border-brand focus:shadow-[0_0_0_1px_rgba(255,115,0,0.5)]
+           focus:outline-none focus:ring-0 focus:ring-offset-0 focus:border-brand focus:shadow-[0_0_0_1px_rgba(232,255,64,0.6)]
            hover:border-neutral-300 dark:hover:border-white/20
            disabled:cursor-not-allowed disabled:opacity-50;
 }
@@ -179,14 +194,14 @@
 .primary-button {
     @apply inline-flex h-11 items-center justify-center rounded-xl bg-brand px-5
            text-base font-semibold text-white transition-all duration-300 ease-out
-           hover:bg-brand/90 hover:scale-[0.98] hover:shadow-[0_4px_12px_rgba(255,115,0,0.3)]
+           hover:bg-brand/90 hover:scale-[0.98] hover:shadow-[0_4px_12px_rgba(32,54,39,0.35)]
            active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30
            disabled:pointer-events-none disabled:bg-neutral-300! disabled:text-neutral-500!;
 }
 
 body {
     font-family: var(--font-tiktok);
-    caret-color: var(--color-brand);
+    caret-color: var(--foreground);
 }
 
 html,
