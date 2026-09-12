@@ -296,6 +296,27 @@ class User extends Authenticatable implements JWTSubject
     }
 
     /**
+     * Get the Spaces (live audio rooms) hosted by the user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany The relationship instance.
+     */
+    public function hostedSpaces(): HasMany
+    {
+        return $this->hasMany(Space::class, 'host_user_id');
+    }
+
+    /**
+     * Get the user's Space participation history (every join/leave session,
+     * across all Spaces).
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany The relationship instance.
+     */
+    public function spaceParticipations(): HasMany
+    {
+        return $this->hasMany(SpaceParticipant::class);
+    }
+
+    /**
      * Get the users that follow the user.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany The relationship instance.
