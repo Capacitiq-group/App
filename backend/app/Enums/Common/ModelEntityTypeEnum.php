@@ -15,6 +15,7 @@ enum ModelEntityTypeEnum: string implements BaseEnumInterface
     case POST = 'post';
     case USER = 'user';
     case HASHTAG = 'hashtag';
+    case SPACE = 'space';
 
     /**
      * Get the label for the entity type.
@@ -25,6 +26,7 @@ enum ModelEntityTypeEnum: string implements BaseEnumInterface
             self::POST => 'Post',
             self::USER => 'User',
             self::HASHTAG => 'Hashtag',
+            self::SPACE => 'Space',
         };
     }
 
@@ -37,6 +39,7 @@ enum ModelEntityTypeEnum: string implements BaseEnumInterface
             self::POST => 'bài viết',
             self::USER => 'người dùng',
             self::HASHTAG => 'hashtag',
+            self::SPACE => 'không gian âm thanh',
         };
     }
 }

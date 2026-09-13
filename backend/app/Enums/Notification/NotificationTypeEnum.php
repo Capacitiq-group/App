@@ -17,6 +17,7 @@ enum NotificationTypeEnum: int implements BaseEnumInterface
     case SYSTEM = 6;
     case ADMIN = 7;
     case SECURITY = 8;
+    case SPACE_SPEAKER_PROMOTED = 9;
 
     /**
      * Get the label for the notification type.
@@ -32,6 +33,7 @@ enum NotificationTypeEnum: int implements BaseEnumInterface
             self::SYSTEM => 'System',
             self::ADMIN => 'Admin',
             self::SECURITY => 'Security',
+            self::SPACE_SPEAKER_PROMOTED => 'Space speaker promotion',
         };
     }
 
@@ -49,6 +51,7 @@ enum NotificationTypeEnum: int implements BaseEnumInterface
             self::SYSTEM => 'system',
             self::ADMIN => 'admin',
             self::SECURITY => 'Bảo mật',
+            self::SPACE_SPEAKER_PROMOTED => 'được mời phát biểu',
         };
     }
 }

@@ -136,6 +136,33 @@ class NotificationService
     }
 
     /**
+     * Notify a user that they were promoted to speaker in a Space.
+     *
+     * @param  int  $actorId  The host/co-host who accepted the speak request.
+     * @param  \App\Models\Space  $space  The Space they were promoted in.
+     * @param  int  $promotedUserId  The user who was promoted.
+     * @return void
+     */
+    public function notifySpeakerPromotion(int $actorId, \App\Models\Space $space, int $promotedUserId): void
+    {
+        if ($actorId === $promotedUserId) {
+            return;
+        }
+
+        $this->notificationRepository->create([
+            'actor_id' => $actorId,
+            'notifiable_id' => $promotedUserId,
+            'type' => NotificationTypeEnum::SPACE_SPEAKER_PROMOTED->value,
+            'entity_type' => ModelEntityTypeEnum::SPACE->value,
+            'entity_id' => $space->id,
+            'data' => [
+                'space_uuid' => $space->uuid,
+                'space_title' => $space->title,
+            ],
+        ]);
+    }
+
+    /**
      * Notify post owner that someone commented on their post.
      *
      * @param  int  $actorId  The ID of the user who posted the comment.

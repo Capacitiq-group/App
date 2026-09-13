@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\Notification\NotificationController;
 use App\Http\Controllers\Api\Post\PostController;
 use App\Http\Controllers\Api\Post\PostScheduleController;
 use App\Http\Controllers\Api\Search\HashtagController;
+use App\Http\Controllers\Api\Space\SpaceController;
 use App\Http\Controllers\Api\User\UserController;
 use App\Http\Controllers\Api\User\UserSettingsController;
 use App\Http\Controllers\Api\Wellness\ScreenTimeController;
@@ -94,6 +95,27 @@ Route::middleware(['auth:api', 'check_user_status'])->group(function () {
             Route::put('scheduled/{uuid}/reschedule',  [PostScheduleController::class, 'reschedule'])->middleware('throttle:10,1')->name('scheduled.reschedule');
             Route::post('{post_uuid}/publish-now',     [PostScheduleController::class, 'publishNow'])->middleware('throttle:10,1')->name('publish-now');
             Route::post('scheduled/{uuid}/cancel',     [PostScheduleController::class, 'cancel'])     ->middleware('throttle:10,1')->name('scheduled.cancel');
+        });
+
+    // space routes (live audio rooms)
+    Route::prefix('spaces')
+        ->name('spaces.')
+        ->group(function () {
+            Route::get('/', [SpaceController::class, 'index'])->name('index');
+            Route::post('/', [SpaceController::class, 'create'])->middleware('throttle:10,1')->name('create');
+            Route::get('{space_uuid}', [SpaceController::class, 'show'])->name('show');
+            Route::post('{space_uuid}/join', [SpaceController::class, 'join'])->name('join');
+            Route::post('{space_uuid}/leave', [SpaceController::class, 'leave'])->name('leave');
+            Route::post('{space_uuid}/end', [SpaceController::class, 'end'])->name('end');
+
+            Route::post('{space_uuid}/speak-requests', [SpaceController::class, 'requestToSpeak'])->name('speak-requests.create');
+            Route::post('{space_uuid}/speak-requests/{speak_request_id}/accept', [SpaceController::class, 'acceptSpeakRequest'])->name('speak-requests.accept');
+            Route::post('{space_uuid}/speak-requests/{speak_request_id}/decline', [SpaceController::class, 'declineSpeakRequest'])->name('speak-requests.decline');
+
+            Route::post('{space_uuid}/participants/{user_uuid}/mute', [SpaceController::class, 'mute'])->name('participants.mute');
+            Route::delete('{space_uuid}/participants/{user_uuid}/mute', [SpaceController::class, 'unmute'])->name('participants.unmute');
+            Route::delete('{space_uuid}/participants/{user_uuid}', [SpaceController::class, 'remove'])->name('participants.remove');
+            Route::post('{space_uuid}/participants/{user_uuid}/ban', [SpaceController::class, 'ban'])->name('participants.ban');
         });
 
     // notification routes

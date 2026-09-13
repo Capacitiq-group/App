@@ -59,6 +59,7 @@ class User extends Authenticatable implements JWTSubject
         'date_of_birth',
         'verify',
         'avatar_file_id',
+        'email_verified_at',
         'banned_at',
         'ban_reason',
         'ban_duration_days',
@@ -114,6 +115,7 @@ class User extends Authenticatable implements JWTSubject
             'ban_reason' => 'string',
             'ban_duration_days' => 'integer',
             'date_of_birth' => 'date',
+            'email_verified_at' => 'datetime',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
             'deleted_at' => 'datetime',
@@ -221,6 +223,26 @@ class User extends Authenticatable implements JWTSubject
     public function isVerified(): bool
     {
         return $this->verify === UserVerifyStatusEnum::VERIFIED;
+    }
+
+    /**
+     * Check if the user has completed email verification.
+     *
+     * @return bool True if the user's email has been verified.
+     */
+    public function hasVerifiedEmail(): bool
+    {
+        return $this->email_verified_at !== null;
+    }
+
+    /**
+     * Get the user's age in whole years, based on date_of_birth.
+     *
+     * @return int|null The user's age, or null if date_of_birth is not set.
+     */
+    public function age(): ?int
+    {
+        return $this->date_of_birth?->age;
     }
 
     /**

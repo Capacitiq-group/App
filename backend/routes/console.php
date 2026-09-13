@@ -20,6 +20,10 @@ Schedule::command('posts:publish-scheduled')
     ->everyMinute()
     ->withoutOverlapping();
 
+Schedule::command('spaces:end-expired')
+    ->everyMinute()
+    ->withoutOverlapping();
+
 Schedule::command('video:cleanup --days=7')
     ->dailyAt('03:00')
     ->withoutOverlapping();
