@@ -24,6 +24,10 @@ Schedule::command('spaces:end-expired')
     ->everyMinute()
     ->withoutOverlapping();
 
+Schedule::command('stories:prune-expired')
+    ->daily()
+    ->withoutOverlapping();
+
 Schedule::command('video:cleanup --days=7')
     ->dailyAt('03:00')
     ->withoutOverlapping();

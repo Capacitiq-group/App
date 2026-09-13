@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\Admin\UserAdminController;
 use App\Http\Controllers\Api\Ai\AiCopilotController;
 use App\Http\Controllers\Api\Appeal\AppealController;
 use App\Http\Controllers\Api\Auth\AuthController;
+use App\Http\Controllers\Api\Highlight\HighlightController;
 use App\Http\Controllers\Api\Media\UploadController;
 use App\Http\Controllers\Api\Media\VideoStreamController;
 use App\Http\Controllers\Api\Media\VideoUploadSessionController;
@@ -20,6 +21,7 @@ use App\Http\Controllers\Api\Post\PostController;
 use App\Http\Controllers\Api\Post\PostScheduleController;
 use App\Http\Controllers\Api\Search\HashtagController;
 use App\Http\Controllers\Api\Space\SpaceController;
+use App\Http\Controllers\Api\Story\StoryController;
 use App\Http\Controllers\Api\User\UserController;
 use App\Http\Controllers\Api\User\UserSettingsController;
 use App\Http\Controllers\Api\Wellness\ScreenTimeController;
@@ -116,6 +118,32 @@ Route::middleware(['auth:api', 'check_user_status'])->group(function () {
             Route::delete('{space_uuid}/participants/{user_uuid}/mute', [SpaceController::class, 'unmute'])->name('participants.unmute');
             Route::delete('{space_uuid}/participants/{user_uuid}', [SpaceController::class, 'remove'])->name('participants.remove');
             Route::post('{space_uuid}/participants/{user_uuid}/ban', [SpaceController::class, 'ban'])->name('participants.ban');
+        });
+
+    // story routes (ephemeral video/image-carousel/text stories, incl. sharing a post to story)
+    Route::prefix('stories')
+        ->name('stories.')
+        ->group(function () {
+            Route::get('/', [StoryController::class, 'index'])->name('index');
+            Route::post('/', [StoryController::class, 'create'])->middleware('throttle:20,1')->name('create');
+            Route::post('share-post', [StoryController::class, 'sharePost'])->middleware('throttle:20,1')->name('share-post');
+            Route::get('{story_uuid}', [StoryController::class, 'show'])->name('show');
+            Route::delete('{story_uuid}', [StoryController::class, 'destroy'])->name('destroy');
+            Route::post('{story_uuid}/view', [StoryController::class, 'view'])->name('view');
+            Route::get('{story_uuid}/viewers', [StoryController::class, 'viewers'])->name('viewers');
+        });
+
+    // highlight routes (permanent, named, ordered collections of a profile's stories)
+    Route::prefix('highlights')
+        ->name('highlights.')
+        ->group(function () {
+            Route::get('/', [HighlightController::class, 'index'])->name('index');
+            Route::post('/', [HighlightController::class, 'create'])->name('create');
+            Route::get('{highlight_uuid}', [HighlightController::class, 'show'])->name('show');
+            Route::patch('{highlight_uuid}', [HighlightController::class, 'update'])->name('update');
+            Route::delete('{highlight_uuid}', [HighlightController::class, 'destroy'])->name('destroy');
+            Route::post('{highlight_uuid}/stories', [HighlightController::class, 'addStory'])->name('stories.add');
+            Route::delete('{highlight_uuid}/stories/{story_uuid}', [HighlightController::class, 'removeStory'])->name('stories.remove');
         });
 
     // notification routes
