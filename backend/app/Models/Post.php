@@ -135,6 +135,16 @@ class Post extends Model
     }
 
     /**
+     * Get the Stories that share this post (type = SHARED_POST).
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany The relationship instance.
+     */
+    public function sharedInStories(): HasMany
+    {
+        return $this->hasMany(Story::class, 'shared_post_id');
+    }
+
+    /**
      * Get the hashtags associated with the post.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany The relationship instance.

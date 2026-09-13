@@ -339,6 +339,26 @@ class User extends Authenticatable implements JWTSubject
     }
 
     /**
+     * Get the user's Stories (all of them — active, expired, and permanent/highlighted).
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany The relationship instance.
+     */
+    public function stories(): HasMany
+    {
+        return $this->hasMany(Story::class);
+    }
+
+    /**
+     * Get the user's Highlights, in profile order.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany The relationship instance.
+     */
+    public function highlights(): HasMany
+    {
+        return $this->hasMany(Highlight::class)->orderBy('position');
+    }
+
+    /**
      * Get the users that follow the user.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany The relationship instance.
