@@ -359,6 +359,24 @@ class User extends Authenticatable implements JWTSubject
     }
 
     /**
+     * Get the user's verification applications (all attempts, most recent first).
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany The relationship instance.
+     */
+    public function verificationApplications(): HasMany
+    {
+        return $this->hasMany(VerificationApplication::class)->latest('submitted_at');
+    }
+
+    /**
+     * Whether the user's verification badge is currently showing.
+     */
+    public function isVerified(): bool
+    {
+        return $this->verify === UserVerifyStatusEnum::VERIFIED;
+    }
+
+    /**
      * Get the users that follow the user.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany The relationship instance.
