@@ -8,7 +8,12 @@ use App\Enums\Space\SpaceEndedReasonEnum;
 use App\Enums\Space\SpaceParticipantRoleEnum;
 use App\Enums\Space\SpaceSpeakRequestStatusEnum;
 use App\Enums\Space\SpaceStatusEnum;
+use App\Events\Space\SpaceEndedEvent;
+use App\Events\Space\SpaceParticipantMutedEvent;
+use App\Events\Space\SpaceParticipantRemovedEvent;
 use App\Events\Space\SpaceSpeakerPromotedEvent;
+use App\Events\Space\SpaceSpeakRequestCreatedEvent;
+use App\Events\Space\SpaceSpeakRequestDeclinedEvent;
 use App\Exceptions\http\BusinessException;
 use App\Exceptions\http\ForbiddenException;
 use App\Exceptions\http\NotFoundException;
@@ -192,12 +197,16 @@ class SpaceService
             throw new BusinessException('You already have a pending request to speak.');
         }
 
-        return $this->speakRequestRepository->create([
+        $speakRequest = $this->speakRequestRepository->create([
             'space_id' => $space->id,
             'user_id' => $user->id,
             'status' => SpaceSpeakRequestStatusEnum::PENDING->value,
             'requested_at' => now(),
         ]);
+
+        event(new SpaceSpeakRequestCreatedEvent($space, $speakRequest->id, $user->id));
+
+        return $speakRequest;
     }
 
     /**
@@ -250,6 +259,8 @@ class SpaceService
             'resolved_by' => $actingUser->id,
         ]);
 
+        event(new SpaceSpeakRequestDeclinedEvent($space, $speakRequest->id, $speakRequest->user_id));
+
         return $speakRequest->refresh();
     }
 
@@ -268,14 +279,20 @@ class SpaceService
 
         $target->update(['is_muted' => $muted]);
 
+        event(new SpaceParticipantMutedEvent($space, $targetUserId, $muted, $actingUser->id));
+
         return $target->refresh();
     }
 
     /**
      * Remove a participant from the Space for this session. Does not block
      * them from rejoining — use banParticipant() for that.
+     *
+     * @param  bool  $banned  Internal — set by banParticipant() so the
+     *                         broadcast event reflects a ban rather than a
+     *                         plain removal. Not meant to be passed directly.
      */
-    public function removeParticipant(Space $space, User $actingUser, int $targetUserId): void
+    public function removeParticipant(Space $space, User $actingUser, int $targetUserId, bool $banned = false): void
     {
         $this->assertCanModerate($space, $actingUser);
 
@@ -293,6 +310,8 @@ class SpaceService
             $target->update(['removed_at' => now(), 'removed_by' => $actingUser->id]);
             $this->reconcileAfterDeparture($space, $target);
         });
+
+        event(new SpaceParticipantRemovedEvent($space, $targetUserId, $banned, $actingUser->id));
     }
 
     /**
@@ -300,7 +319,7 @@ class SpaceService
      */
     public function banParticipant(Space $space, User $actingUser, int $targetUserId, ?string $reason = null): void
     {
-        $this->removeParticipant($space, $actingUser, $targetUserId);
+        $this->removeParticipant($space, $actingUser, $targetUserId, banned: true);
 
         DB::table('space_bans')->insertOrIgnore([
             'space_id' => $space->id,
@@ -334,7 +353,35 @@ class SpaceService
             );
         });
 
+        event(new SpaceEndedEvent($space, $reason->value));
+
         return $space->refresh();
+    }
+
+    /**
+     * Issue a fresh Agora RTC token for the caller's current role in this
+     * Space. Clients call this after receiving a `speaker.promoted` (or any
+     * role-changing) broadcast, rather than the role-change payload itself
+     * ever carrying a token — a token is credentials, and the presence
+     * channel is shared by everyone in the room.
+     *
+     * @return array{token: string, app_id: string, channel_name: string, uid: int, expires_at: int}
+     *
+     * @throws ForbiddenException If the caller isn't currently an active participant.
+     */
+    public function refreshAgoraToken(Space $space, User $user): array
+    {
+        $participant = $this->participantRepository->activeParticipant($space, $user->id);
+
+        if ($participant === null) {
+            throw new ForbiddenException('You are not currently in this Space.');
+        }
+
+        return $this->agoraTokenService->generateRtcToken(
+            $space->agora_channel_name,
+            $participant->agora_uid,
+            $participant->role,
+        );
     }
 
     /**

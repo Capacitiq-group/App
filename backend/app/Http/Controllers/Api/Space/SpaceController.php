@@ -11,6 +11,7 @@ use App\Http\Requests\Space\JoinSpaceRequest;
 use App\Http\Requests\Space\LeaveSpaceRequest;
 use App\Http\Requests\Space\ListSpacesRequest;
 use App\Http\Requests\Space\ModerateParticipantRequest;
+use App\Http\Requests\Space\RefreshAgoraTokenRequest;
 use App\Http\Requests\Space\RequestToSpeakRequest;
 use App\Http\Requests\Space\ResolveSpeakRequestRequest;
 use App\Http\Requests\Space\ShowSpaceRequest;
@@ -100,6 +101,22 @@ class SpaceController extends Controller
                 'participant' => $participantResource,
             ],
             message: 'Joined Space successfully'
+        );
+    }
+
+    /**
+     * Get a fresh Agora RTC token for the caller's current role — call this
+     * after receiving a real-time role-change event (e.g. speaker.promoted).
+     */
+    public function refreshToken(RefreshAgoraTokenRequest $request): JsonResponse
+    {
+        $space = $this->spaceRepository->findByUuidOrFail($request->validated('space_uuid'));
+
+        $agora = $this->spaceService->refreshAgoraToken($space, $this->guard()->user());
+
+        return ApiResponse::success(
+            data: ['agora' => $agora],
+            message: 'Token refreshed'
         );
     }
 

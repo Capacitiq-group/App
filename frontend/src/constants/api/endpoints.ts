@@ -56,6 +56,15 @@ export const BACKEND_API_ENDPOINT = {
         UPLOAD_IMAGE: '/medias/upload-image',
         UPLOAD_VIDEO: '/medias/upload-video'
     },
+    SPACE: {
+        LIST: '/spaces',
+        CREATE: '/spaces',
+        DETAIL: (uuid: string) => `/spaces/${uuid}`,
+        JOIN: (uuid: string) => `/spaces/${uuid}/join`,
+        TOKEN_REFRESH: (uuid: string) => `/spaces/${uuid}/token`,
+        LEAVE: (uuid: string) => `/spaces/${uuid}/leave`,
+        END: (uuid: string) => `/spaces/${uuid}/end`
+    },
     VIDEO: {
         ENCODING_STATUS: (uuid: string) => `/videos/${uuid}/encoding-status`,
         RETRY_ENCODING: (uuid: string) => `/videos/${uuid}/retry-encoding`,

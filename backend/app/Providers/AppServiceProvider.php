@@ -7,6 +7,7 @@ use App\Enums\Common\ModelEntityTypeEnum;
 use App\Libraries\Gemini\GeminiClient as AppGeminiClient;
 use App\Models\Hashtag;
 use App\Models\Post;
+use App\Models\Space;
 use App\Models\User;
 use App\Services\AI\Copilot\Engines\AnalyticsEngine;
 use App\Services\AI\Copilot\Engines\AppKnowledgeEngine;
@@ -25,6 +26,7 @@ use GuzzleHttp\Client as GuzzleClient;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -83,6 +85,15 @@ class AppServiceProvider extends ServiceProvider
             ModelEntityTypeEnum::POST->value => Post::class,
             ModelEntityTypeEnum::USER->value => User::class,
             ModelEntityTypeEnum::HASHTAG->value => Hashtag::class,
+            ModelEntityTypeEnum::SPACE->value => Space::class,
         ]);
+
+        // This app authenticates API clients with a JWT bearer token (guard
+        // 'api'), not Laravel's default session-based 'web' guard — so the
+        // broadcasting auth endpoint has to be registered explicitly under
+        // 'auth:api' rather than relying on withRouting()'s automatic
+        // Broadcast::routes() call, which defaults to 'web'.
+        Broadcast::routes(['middleware' => ['auth:api']]);
+        require base_path('routes/channels.php');
     }
 }

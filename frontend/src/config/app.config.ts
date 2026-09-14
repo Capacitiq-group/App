@@ -9,7 +9,11 @@ const configSchema = z.object({
     NEXT_PUBLIC_APP_NAME: z.string().min(2).max(100),
     NEXT_PUBLIC_COMPANY_NAME: z.string().min(2).max(100),
     NEXT_PUBLIC_CONTACT_EMAIL: z.string().email(),
-    NEXT_PUBLIC_JURISDICTION: z.string().min(2).max(100)
+    NEXT_PUBLIC_JURISDICTION: z.string().min(2).max(100),
+    NEXT_PUBLIC_REVERB_APP_KEY: z.string().min(1),
+    NEXT_PUBLIC_REVERB_HOST: z.string().min(1),
+    NEXT_PUBLIC_REVERB_PORT: z.coerce.number().int().positive(),
+    NEXT_PUBLIC_REVERB_SCHEME: z.enum(['http', 'https'])
 })
 
 const config = configSchema.safeParse({
@@ -21,7 +25,11 @@ const config = configSchema.safeParse({
     NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
     NEXT_PUBLIC_COMPANY_NAME: process.env.NEXT_PUBLIC_COMPANY_NAME,
     NEXT_PUBLIC_CONTACT_EMAIL: process.env.NEXT_PUBLIC_CONTACT_EMAIL,
-    NEXT_PUBLIC_JURISDICTION: process.env.NEXT_PUBLIC_JURISDICTION
+    NEXT_PUBLIC_JURISDICTION: process.env.NEXT_PUBLIC_JURISDICTION,
+    NEXT_PUBLIC_REVERB_APP_KEY: process.env.NEXT_PUBLIC_REVERB_APP_KEY,
+    NEXT_PUBLIC_REVERB_HOST: process.env.NEXT_PUBLIC_REVERB_HOST,
+    NEXT_PUBLIC_REVERB_PORT: process.env.NEXT_PUBLIC_REVERB_PORT,
+    NEXT_PUBLIC_REVERB_SCHEME: process.env.NEXT_PUBLIC_REVERB_SCHEME
 })
 
 if (!config.success) {
