@@ -210,6 +210,18 @@ class SpaceService
     }
 
     /**
+     * Get the pending speak requests for a Space, oldest first. Host/co-host only.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection<int, SpaceSpeakRequest>
+     */
+    public function listPendingSpeakRequests(Space $space, User $actingUser): \Illuminate\Database\Eloquent\Collection
+    {
+        $this->assertCanModerate($space, $actingUser);
+
+        return $this->speakRequestRepository->pendingFor($space);
+    }
+
+    /**
      * Accept a pending speak request, promoting the requester to speaker.
      *
      * @throws BusinessException If the request isn't pending or the Space is

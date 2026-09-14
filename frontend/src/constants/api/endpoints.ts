@@ -63,7 +63,16 @@ export const BACKEND_API_ENDPOINT = {
         JOIN: (uuid: string) => `/spaces/${uuid}/join`,
         TOKEN_REFRESH: (uuid: string) => `/spaces/${uuid}/token`,
         LEAVE: (uuid: string) => `/spaces/${uuid}/leave`,
-        END: (uuid: string) => `/spaces/${uuid}/end`
+        END: (uuid: string) => `/spaces/${uuid}/end`,
+        SPEAK_REQUEST_CREATE: (uuid: string) => `/spaces/${uuid}/speak-requests`,
+        SPEAK_REQUEST_LIST: (uuid: string) => `/spaces/${uuid}/speak-requests`,
+        SPEAK_REQUEST_ACCEPT: (uuid: string, speakRequestId: number) =>
+            `/spaces/${uuid}/speak-requests/${speakRequestId}/accept`,
+        SPEAK_REQUEST_DECLINE: (uuid: string, speakRequestId: number) =>
+            `/spaces/${uuid}/speak-requests/${speakRequestId}/decline`,
+        PARTICIPANT_MUTE: (uuid: string, userUuid: string) => `/spaces/${uuid}/participants/${userUuid}/mute`,
+        PARTICIPANT_REMOVE: (uuid: string, userUuid: string) => `/spaces/${uuid}/participants/${userUuid}`,
+        PARTICIPANT_BAN: (uuid: string, userUuid: string) => `/spaces/${uuid}/participants/${userUuid}/ban`
     },
     VIDEO: {
         ENCODING_STATUS: (uuid: string) => `/videos/${uuid}/encoding-status`,

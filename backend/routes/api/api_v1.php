@@ -112,6 +112,7 @@ Route::middleware(['auth:api', 'check_user_status'])->group(function () {
             Route::post('{space_uuid}/end', [SpaceController::class, 'end'])->name('end');
 
             Route::post('{space_uuid}/speak-requests', [SpaceController::class, 'requestToSpeak'])->name('speak-requests.create');
+            Route::get('{space_uuid}/speak-requests', [SpaceController::class, 'pendingSpeakRequests'])->name('speak-requests.index');
             Route::post('{space_uuid}/speak-requests/{speak_request_id}/accept', [SpaceController::class, 'acceptSpeakRequest'])->name('speak-requests.accept');
             Route::post('{space_uuid}/speak-requests/{speak_request_id}/decline', [SpaceController::class, 'declineSpeakRequest'])->name('speak-requests.decline');
 

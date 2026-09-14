@@ -10,6 +10,7 @@ use App\Http\Requests\Space\EndSpaceRequest;
 use App\Http\Requests\Space\JoinSpaceRequest;
 use App\Http\Requests\Space\LeaveSpaceRequest;
 use App\Http\Requests\Space\ListSpacesRequest;
+use App\Http\Requests\Space\ListSpeakRequestsRequest;
 use App\Http\Requests\Space\ModerateParticipantRequest;
 use App\Http\Requests\Space\RefreshAgoraTokenRequest;
 use App\Http\Requests\Space\RequestToSpeakRequest;
@@ -144,6 +145,21 @@ class SpaceController extends Controller
         return ApiResponse::success(
             data: new SpaceResource($space),
             message: 'Space ended'
+        );
+    }
+
+    /**
+     * Get the pending speak requests for a Space. Host/co-host only.
+     */
+    public function pendingSpeakRequests(ListSpeakRequestsRequest $request): JsonResponse
+    {
+        $space = $this->spaceRepository->findByUuidOrFail($request->validated('space_uuid'));
+
+        $requests = $this->spaceService->listPendingSpeakRequests($space, $this->guard()->user());
+
+        return ApiResponse::success(
+            data: SpaceSpeakRequestResource::collection($requests->load('user')),
+            message: 'Pending speak requests retrieved successfully'
         );
     }
 
