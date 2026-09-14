@@ -260,6 +260,10 @@ services:
 
   ai-serve:
     container_name: ${CONTAINER_PREFIX:-snapi}_ai_serve
+    # Opt-in: requires the trained model file referenced by AI_MODEL_PATH.
+    # Start with: docker compose -f compose.prod.yaml --profile ai up -d
+    profiles:
+      - ai
     build:
       context: .
       dockerfile: ./.docker/common/ai/serve/Dockerfile
@@ -288,6 +292,8 @@ services:
 
   ai-worker:
     container_name: ${CONTAINER_PREFIX:-snapi}_ai_worker
+    profiles:
+      - ai
     build:
       context: .
       dockerfile: ./.docker/common/ai/serve/Dockerfile
