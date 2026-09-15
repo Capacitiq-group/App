@@ -28,6 +28,10 @@ Schedule::command('stories:prune-expired')
     ->daily()
     ->withoutOverlapping();
 
+Schedule::command('verification:reconcile')
+    ->hourly()
+    ->withoutOverlapping();
+
 Schedule::command('video:cleanup --days=7')
     ->dailyAt('03:00')
     ->withoutOverlapping();

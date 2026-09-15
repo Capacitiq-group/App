@@ -99,6 +99,33 @@ services:
       kafka:
         condition: service_healthy
 
+  reverb:
+    container_name: ${CONTAINER_PREFIX:-snapi}_reverb
+    build:
+      context: .
+      dockerfile: ./.docker/common/backend/php-fpm/Dockerfile
+      target: production
+      args:
+        DOCKER_ENV: production
+    restart: unless-stopped
+    env_file:
+      - ${BACKEND_ENV_FILE:-./backend/.env}
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+      DB_HOST: postgres
+      REDIS_HOST: redis
+    command: ["php", "artisan", "reverb:start", "--host=0.0.0.0", "--port=8080"]
+    networks:
+      - app-production
+    ports:
+      - "${REVERB_SERVER_PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
   postgres:
     container_name: ${CONTAINER_PREFIX:-snapi}_postgres
     image: postgres:12.7
@@ -260,10 +287,6 @@ services:
 
   ai-serve:
     container_name: ${CONTAINER_PREFIX:-snapi}_ai_serve
-    # Opt-in: requires the trained model file referenced by AI_MODEL_PATH.
-    # Start with: docker compose -f compose.prod.yaml --profile ai up -d
-    profiles:
-      - ai
     build:
       context: .
       dockerfile: ./.docker/common/ai/serve/Dockerfile
@@ -292,8 +315,6 @@ services:
 
   ai-worker:
     container_name: ${CONTAINER_PREFIX:-snapi}_ai_worker
-    profiles:
-      - ai
     build:
       context: .
       dockerfile: ./.docker/common/ai/serve/Dockerfile

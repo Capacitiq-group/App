@@ -13,6 +13,7 @@ enum VerificationEventTypeEnum: string implements BaseEnumInterface
     case HOLD_PLACED          = 'hold_placed';
     case DIDIT_WEBHOOK        = 'didit_webhook';
     case AUTO_APPROVED        = 'auto_approved';
+    case AUTO_REJECTED        = 'auto_rejected';
     case FLAGGED_FOR_REVIEW   = 'flagged_for_review';
     case MANUALLY_APPROVED    = 'manually_approved';
     case MANUALLY_REJECTED    = 'manually_rejected';
@@ -31,6 +32,7 @@ enum VerificationEventTypeEnum: string implements BaseEnumInterface
             self::HOLD_PLACED          => 'Payment hold placed',
             self::DIDIT_WEBHOOK        => 'Didit status update received',
             self::AUTO_APPROVED        => 'Automatically approved',
+            self::AUTO_REJECTED        => 'Automatically rejected',
             self::FLAGGED_FOR_REVIEW   => 'Flagged for manual review',
             self::MANUALLY_APPROVED    => 'Manually approved',
             self::MANUALLY_REJECTED    => 'Manually rejected',
@@ -51,6 +53,7 @@ enum VerificationEventTypeEnum: string implements BaseEnumInterface
             self::HOLD_PLACED          => 'Đã giữ khoản thanh toán',
             self::DIDIT_WEBHOOK        => 'Nhận cập nhật từ Didit',
             self::AUTO_APPROVED        => 'Đã tự động duyệt',
+            self::AUTO_REJECTED        => 'Đã tự động từ chối',
             self::FLAGGED_FOR_REVIEW   => 'Được đánh dấu xem xét thủ công',
             self::MANUALLY_APPROVED    => 'Đã duyệt thủ công',
             self::MANUALLY_REJECTED    => 'Đã từ chối thủ công',

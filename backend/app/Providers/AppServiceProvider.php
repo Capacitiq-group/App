@@ -26,7 +26,6 @@ use GuzzleHttp\Client as GuzzleClient;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -89,11 +88,13 @@ class AppServiceProvider extends ServiceProvider
         ]);
 
         // This app authenticates API clients with a JWT bearer token (guard
-        // 'api'), not Laravel's default session-based 'web' guard — so the
-        // broadcasting auth endpoint has to be registered explicitly under
-        // 'auth:api' rather than relying on withRouting()'s automatic
-        // Broadcast::routes() call, which defaults to 'web'.
-        Broadcast::routes(['middleware' => ['auth:api']]);
+        // 'api'), not Laravel's default session-based 'web' guard.
+        // routes/api.php already calls Broadcast::routes() with the correct
+        // 'auth:api' + 'check_user_status' middleware — calling it again
+        // here would register a duplicate /broadcasting/auth route. All
+        // that's needed here is loading the channel authorization callbacks,
+        // which nothing else does now that 'channels:' was removed from
+        // bootstrap/app.php's withRouting() call.
         require base_path('routes/channels.php');
     }
 }
