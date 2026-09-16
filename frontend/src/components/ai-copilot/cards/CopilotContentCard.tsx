@@ -184,28 +184,4 @@ export function CopilotContentCard({
             </div>
         </div>
     )
-}                        onClick={handleAccept}
-                        className='flex-1 flex items-center justify-center gap-1.5 py-2.5
-                                   text-xs font-semibold text-primary
-                                   hover:bg-primary/5 transition-colors'
-                    >
-                        <Check className='size-3.5' />
-                        {t('contentCard.accept')}
-                    </button>
-                ) : (
-                    <button
-                        onClick={handleCopy}
-                        className='flex-1 flex items-center justify-center gap-1.5 py-2.5
-                                   text-xs font-semibold text-muted-foreground
-                                   hover:bg-muted hover:text-foreground transition-colors'
-                    >
-                        {copied
-                            ? <CheckCheck className='size-3.5 text-green-500' />
-                            : <Copy className='size-3.5' />}
-                        {copied ? t('contentCard.copied') : t('contentCard.copy')}
-                    </button>
-                )}
-            </div>
-        </div>
-    )
 }

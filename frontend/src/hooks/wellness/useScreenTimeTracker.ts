@@ -186,7 +186,8 @@ export function useScreenTimeTracker(isAuthenticated: boolean) {
             for (const rule of rules) {
                 if (!rule.is_enabled) continue
                 if (dismissedRules.includes(rule.uuid)) continue
-                if (snoozedRules[rule.uuid] && now < snoozedRules[rule.uuid]) continue
+                const snoozeUntil = snoozedRules[rule.uuid]
+                if (snoozeUntil && now < snoozeUntil) continue
 
                 let triggered = false
                 const cycleKey = rule.uuid

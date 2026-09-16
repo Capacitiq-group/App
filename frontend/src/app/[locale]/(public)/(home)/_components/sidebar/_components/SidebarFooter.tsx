@@ -1,8 +1,13 @@
 import { Button } from '@/components/ui/button'
-import { LinkItem } from '@/constants/Links/types'
 import { Link } from '@/i18n/navigation'
 import { useLocale, useTranslations } from 'next-intl'
 import { useState } from 'react'
+
+interface LinkItem {
+    id: string | number
+    href: string
+    name: string
+}
 
 export interface LinkCategory {
     title: string

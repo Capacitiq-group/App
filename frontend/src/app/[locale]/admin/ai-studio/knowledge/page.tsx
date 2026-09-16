@@ -433,7 +433,7 @@ export default function KnowledgePage() {
                                     pluginRenderers={DocViewerRenderers}
                                     config={{
                                         header: { disableHeader: true },
-                                        pdfZoom: { defaultZoom: 1 },
+                                        pdfZoom: { defaultZoom: 1, zoomJump: 0.2 },
                                         pdfVerticalScrollByDefault: true,
                                     }}
                                     style={{ height: '100%', background: 'transparent' }}

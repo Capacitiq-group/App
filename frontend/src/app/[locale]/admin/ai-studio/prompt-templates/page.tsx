@@ -175,7 +175,7 @@ export default function PromptTemplatesPage() {
                                 )}
 
                                 <div className='space-y-2'>
-                                    {grouped[category].map((tpl) => {
+                                    {(grouped[category] ?? []).map((tpl) => {
                                         const isOpen = expanded === tpl.intent
                                         const hasEdits = !!edits[tpl.intent]
                                         const current = { ...tpl, ...edits[tpl.intent] }

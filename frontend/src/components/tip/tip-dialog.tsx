@@ -34,7 +34,7 @@ export function TipDialog({
     sourceType,
     sourceUuid
 }: TipDialogProps) {
-    const [amountRand, setAmountRand] = useState<number>(PRESET_RAND[0])
+    const [amountRand, setAmountRand] = useState<number>(PRESET_RAND[0] ?? 20)
     const [customAmount, setCustomAmount] = useState('')
     const [message, setMessage] = useState('')
     const [isSubmitting, setIsSubmitting] = useState(false)
