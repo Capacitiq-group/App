@@ -399,13 +399,6 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasMany(VerificationApplication::class)->latest('submitted_at');
     }
 
-    /**
-     * Whether the user's verification badge is currently showing.
-     */
-    public function isVerified(): bool
-    {
-        return $this->verify === UserVerifyStatusEnum::VERIFIED;
-    }
 
     /**
      * Get the users that follow the user.
