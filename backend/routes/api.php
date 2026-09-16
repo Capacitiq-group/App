@@ -1,7 +1,7 @@
 <?php
 
+use App\Http\Controllers\Api\Payment\PaystackWebhookController;
 use App\Http\Controllers\Api\Verification\DiditWebhookController;
-use App\Http\Controllers\Api\Verification\PaystackWebhookController;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 

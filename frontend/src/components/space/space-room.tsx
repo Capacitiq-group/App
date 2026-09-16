@@ -5,8 +5,9 @@ import { SpaceActionBar } from '@/components/space/space-action-bar'
 import { SpaceHeader } from '@/components/space/space-header'
 import { SpaceRequestsDrawer } from '@/components/space/space-requests-drawer'
 import { SpaceStage } from '@/components/space/space-stage'
+import { TipDialog } from '@/components/tip/tip-dialog'
 import { useSpaceAudio } from '@/hooks/use-space-audio'
-import { useSpaceChannel } from '@/hooks/use-space-channel'
+import { useSpaceChannel, SpacePresenceMember } from '@/hooks/use-space-channel'
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -25,6 +26,7 @@ export function SpaceRoom({ spaceUuid, currentUserId, onExit }: SpaceRoomProps) 
     const [hasPendingRequest, setHasPendingRequest] = useState(false)
     const [pendingRequests, setPendingRequests] = useState<SpaceSpeakRequestDto[]>([])
     const [requestsDrawerOpen, setRequestsDrawerOpen] = useState(false)
+    const [tipTarget, setTipTarget] = useState<SpacePresenceMember | null>(null)
     const hasLeftRef = useRef(false)
 
     // Join on mount.
@@ -170,7 +172,12 @@ export function SpaceRoom({ spaceUuid, currentUserId, onExit }: SpaceRoomProps) 
                 onLeave={handleLeave}
                 onEnd={handleEnd}
             />
-            <SpaceStage members={members} speakingLevels={volumeLevels} />
+            <SpaceStage
+                members={members}
+                speakingLevels={volumeLevels}
+                currentUserId={currentUserId}
+                onTipSpeaker={setTipTarget}
+            />
             <SpaceActionBar
                 role={myRole}
                 micEnabled={micEnabled}
@@ -188,6 +195,17 @@ export function SpaceRoom({ spaceUuid, currentUserId, onExit }: SpaceRoomProps) 
                 onAccept={(id) => void handleAccept(id)}
                 onDecline={(id) => void handleDecline(id)}
             />
+            {tipTarget && (
+                <TipDialog
+                    open={tipTarget !== null}
+                    onOpenChange={(isOpen) => !isOpen && setTipTarget(null)}
+                    recipientUuid={tipTarget.uuid}
+                    recipientUsername={tipTarget.username}
+                    recipientAvatarUrl={tipTarget.avatar_url}
+                    sourceType='space'
+                    sourceUuid={space.uuid}
+                />
+            )}
             {!connected && (
                 <div className='absolute inset-x-0 top-0 bg-secondary py-1 text-center text-xs text-secondary-foreground'>
                     Reconnecting…

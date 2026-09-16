@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\Post\PostScheduleController;
 use App\Http\Controllers\Api\Search\HashtagController;
 use App\Http\Controllers\Api\Space\SpaceController;
 use App\Http\Controllers\Api\Story\StoryController;
+use App\Http\Controllers\Api\Tip\TipController;
 use App\Http\Controllers\Api\User\UserController;
 use App\Http\Controllers\Api\Verification\VerificationController;
 use App\Http\Controllers\Api\User\UserSettingsController;
@@ -157,6 +158,15 @@ Route::middleware(['auth:api', 'check_user_status'])->group(function () {
                 ->middleware('throttle:5,1')
                 ->name('applications.submit');
             Route::get('status', [VerificationController::class, 'status'])->name('status');
+        });
+
+    // tip routes
+    Route::prefix('tips')
+        ->name('tips.')
+        ->group(function () {
+            Route::post('/', [TipController::class, 'create'])
+                ->middleware('throttle:20,1')
+                ->name('create');
         });
 
     // notification routes

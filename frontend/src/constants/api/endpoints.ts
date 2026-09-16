@@ -60,6 +60,9 @@ export const BACKEND_API_ENDPOINT = {
         SUBMIT: '/verification/applications',
         STATUS: '/verification/status'
     },
+    TIP: {
+        CREATE: '/tips'
+    },
     SPACE: {
         LIST: '/spaces',
         CREATE: '/spaces',

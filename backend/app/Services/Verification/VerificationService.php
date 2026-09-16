@@ -202,6 +202,45 @@ class VerificationService
     }
 
     /**
+     * React to Paystack confirming a capture that VerificationService::approve()
+     * already performed synchronously — just logs the confirmation for the
+     * audit trail. No-op if the reference doesn't match a verification application
+     * (it may belong to a different paid feature, e.g. a tip).
+     */
+    public function handleCaptureWebhookConfirmation(string $paystackReference): void
+    {
+        $application = $this->applications->query()->where('paystack_reference', $paystackReference)->first();
+
+        if ($application === null) {
+            return;
+        }
+
+        $this->logEvent($application, VerificationEventTypeEnum::HOLD_CAPTURED, null, ['source' => 'webhook_confirmation']);
+    }
+
+    /**
+     * The rare async edge case: a capture() call didn't get a definitive
+     * response, and Paystack later confirmed it actually failed — after the
+     * application was already marked VERIFIED. Flags for manual staff
+     * attention rather than automatically revoking a granted badge.
+     */
+    public function handleCaptureFailedAfterApproval(string $paystackReference): void
+    {
+        $application = $this->applications->query()->where('paystack_reference', $paystackReference)->first();
+
+        if ($application === null) {
+            return;
+        }
+
+        Log::critical('Paystack capture failed after verification was already marked approved', [
+            'verification_application_id' => $application->id,
+            'paystack_reference' => $paystackReference,
+        ]);
+
+        $this->flagForReview($application, 'Payment capture failed asynchronously after approval — needs manual resolution before the badge should be considered valid.');
+    }
+
+    /**
      * Approve: capture the hold, flip the badge on, mark verified.
      */
     private function approve(VerificationApplication $application, array $diditPayload, bool $manual, ?User $admin = null): void

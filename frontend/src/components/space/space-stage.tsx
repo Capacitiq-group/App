@@ -5,9 +5,11 @@ import { SpacePresenceMember } from '@/hooks/use-space-channel'
 type SpaceStageProps = {
     members: SpacePresenceMember[]
     speakingLevels: Map<number, number>
+    currentUserId: number
+    onTipSpeaker?: (member: SpacePresenceMember) => void
 }
 
-export function SpaceStage({ members, speakingLevels }: SpaceStageProps) {
+export function SpaceStage({ members, speakingLevels, currentUserId, onTipSpeaker }: SpaceStageProps) {
     const speakers = members.filter((m) => m.role !== 'listener')
     const listeners = members.filter((m) => m.role === 'listener')
 
@@ -22,6 +24,7 @@ export function SpaceStage({ members, speakingLevels }: SpaceStageProps) {
                         role={member.role}
                         isMuted={false}
                         speakingLevel={speakingLevels.get(member.id) ?? 0}
+                        onTip={member.id !== currentUserId && onTipSpeaker ? () => onTipSpeaker(member) : undefined}
                     />
                 ))}
             </div>

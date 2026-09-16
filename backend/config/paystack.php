@@ -32,4 +32,10 @@ return [
         'hold_expire_days' => (int) env('VERIFICATION_HOLD_EXPIRE_DAYS', 5),
         'hold_expire_action' => 'release',
     ],
+    'tips' => [
+        // R20.00 minimum, in cents.
+        'min_amount_cents' => (int) env('TIP_MIN_AMOUNT_CENTS', 2000),
+        // Configurable, not hardcoded — a whole number percentage (10 = 10%).
+        'platform_fee_percentage' => (int) env('TIP_PLATFORM_FEE_PERCENTAGE', 10),
+    ],
 ];

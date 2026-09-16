@@ -116,6 +116,7 @@ class User extends Authenticatable implements JWTSubject
             'ban_duration_days' => 'integer',
             'date_of_birth' => 'date',
             'email_verified_at' => 'datetime',
+            'wallet_balance_cents' => 'integer',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
             'deleted_at' => 'datetime',
@@ -359,6 +360,36 @@ class User extends Authenticatable implements JWTSubject
     }
 
     /**
+     * Get tips this user has sent.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany The relationship instance.
+     */
+    public function tipsSent(): HasMany
+    {
+        return $this->hasMany(Tip::class, 'tipper_id');
+    }
+
+    /**
+     * Get tips this user has received.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany The relationship instance.
+     */
+    public function tipsReceived(): HasMany
+    {
+        return $this->hasMany(Tip::class, 'recipient_id');
+    }
+
+    /**
+     * Get this user's wallet ledger, most recent first.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany The relationship instance.
+     */
+    public function walletTransactions(): HasMany
+    {
+        return $this->hasMany(WalletTransaction::class)->latest();
+    }
+
+    /**
      * Get the user's verification applications (all attempts, most recent first).
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany The relationship instance.
@@ -366,6 +397,14 @@ class User extends Authenticatable implements JWTSubject
     public function verificationApplications(): HasMany
     {
         return $this->hasMany(VerificationApplication::class)->latest('submitted_at');
+    }
+
+    /**
+     * Whether the user's verification badge is currently showing.
+     */
+    public function isVerified(): bool
+    {
+        return $this->verify === UserVerifyStatusEnum::VERIFIED;
     }
 
     /**

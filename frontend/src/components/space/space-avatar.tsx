@@ -10,6 +10,8 @@ type SpaceAvatarProps = {
     /** Live Agora volume level, 0–1. Drives the speaking ring's intensity directly. */
     speakingLevel?: number
     size?: 'sm' | 'lg'
+    /** When provided, the avatar becomes tappable to open the tip dialog for this person. */
+    onTip?: () => void
 }
 
 const ROLE_LABEL: Record<SpaceAvatarProps['role'], string> = {
@@ -19,12 +21,12 @@ const ROLE_LABEL: Record<SpaceAvatarProps['role'], string> = {
     listener: ''
 }
 
-export function SpaceAvatar({ name, avatarUrl, role, isMuted, speakingLevel = 0, size = 'lg' }: SpaceAvatarProps) {
+export function SpaceAvatar({ name, avatarUrl, role, isMuted, speakingLevel = 0, size = 'lg', onTip }: SpaceAvatarProps) {
     const initials = name.slice(0, 2).toUpperCase()
     const canSpeak = role !== 'listener'
     const isSpeaking = canSpeak && !isMuted && speakingLevel > 0.05
 
-    return (
+    const avatarBlock = (
         <div className='flex flex-col items-center gap-1.5'>
             <div className='relative'>
                 <Avatar
@@ -53,5 +55,13 @@ export function SpaceAvatar({ name, avatarUrl, role, isMuted, speakingLevel = 0,
                 )}
             </div>
         </div>
+    )
+
+    if (!onTip) return avatarBlock
+
+    return (
+        <button type='button' onClick={onTip} className='rounded-lg transition-opacity hover:opacity-80' aria-label={`Tip ${name}`}>
+            {avatarBlock}
+        </button>
     )
 }
