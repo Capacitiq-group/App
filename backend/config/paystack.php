@@ -11,8 +11,19 @@ return [
     'webhook_secret' => env('PAYSTACK_SECRET_KEY', ''),
 
     'verification' => [
-        // R79.00 in cents — Paystack amounts are always the smallest currency unit.
-        'fee_cents' => (int) env('VERIFICATION_FEE_CENTS', 7900),
+        // R99.00/month or R999.00/year, in cents — Paystack amounts are
+        // always the smallest currency unit. Annual works out to ~2 months
+        // free vs. paying monthly (R1,188/year) — R189 saving.
+        'monthly_fee_cents' => (int) env('VERIFICATION_MONTHLY_FEE_CENTS', 9900),
+        'annual_fee_cents' => (int) env('VERIFICATION_ANNUAL_FEE_CENTS', 99900),
+
+        // Paystack Plan codes for the *recurring* charge after the first
+        // payment succeeds and the application is approved — created once in
+        // the Paystack dashboard (or via their Plan API), not per-application.
+        'plan_codes' => [
+            'monthly' => env('PAYSTACK_VERIFICATION_MONTHLY_PLAN_CODE', ''),
+            'annual' => env('PAYSTACK_VERIFICATION_ANNUAL_PLAN_CODE', ''),
+        ],
 
         // Hold window: "confirm the amount before the hold expires". Default
         // 5 days per the platform rules doc; NEVER auto-capture on expiry —

@@ -4,6 +4,7 @@ namespace App\Services\Verification;
 
 use App\Enums\User\UserVerifyStatusEnum;
 use App\Enums\Verification\VerificationApplicantTypeEnum;
+use App\Enums\Verification\VerificationBillingCycleEnum;
 use App\Enums\Verification\VerificationEventTypeEnum;
 use App\Enums\Verification\VerificationHoldStatusEnum;
 use App\Enums\Verification\VerificationStatusEnum;
@@ -73,18 +74,19 @@ class VerificationService
      * VerificationBusinessDetail, or VerificationPoliticalDetail respectively.
      *
      * @param  array<string, mixed>  $details
-     * @return array{application: VerificationApplication, didit_url: string}
+     * @return array{application: VerificationApplication, didit_url: string, paystack_authorization_url: string}
      *
      * @throws ForbiddenException|BusinessException
      */
-    public function submit(User $user, VerificationApplicantTypeEnum $applicantType, array $details, string $callbackUrl): array
+    public function submit(User $user, VerificationApplicantTypeEnum $applicantType, VerificationBillingCycleEnum $billingCycle, array $details, string $callbackUrl): array
     {
         $this->assertCanApply($user);
 
-        return DB::transaction(function () use ($user, $applicantType, $details, $callbackUrl) {
+        return DB::transaction(function () use ($user, $applicantType, $billingCycle, $details, $callbackUrl) {
             $application = $this->applications->create([
                 'user_id' => $user->id,
                 'applicant_type' => $applicantType->value,
+                'billing_cycle' => $billingCycle->value,
                 'status' => VerificationStatusEnum::IN_PROGRESS->value,
                 'submitted_at' => now(),
             ]);
@@ -97,6 +99,7 @@ class VerificationService
 
             $hold = $this->paystack->initializeHold(
                 email: $user->email,
+                amountCents: $billingCycle->feeCents(),
                 callbackUrl: $callbackUrl,
                 reference: 'verify_'.$application->uuid,
             );
@@ -117,7 +120,11 @@ class VerificationService
                 'applicant_type' => $applicantType->value,
             ]);
 
-            return ['application' => $application->refresh(), 'didit_url' => $diditUrl];
+            return [
+                'application' => $application->refresh(),
+                'didit_url' => $diditUrl,
+                'paystack_authorization_url' => $hold['authorization_url'],
+            ];
         });
     }
 
@@ -220,6 +227,8 @@ class VerificationService
 
             $this->paystack->capture($application->paystack_reference);
 
+            $this->startRecurringSubscription($application);
+
             $application->update([
                 'status' => VerificationStatusEnum::VERIFIED->value,
                 'hold_status' => VerificationHoldStatusEnum::CAPTURED->value,
@@ -237,6 +246,43 @@ class VerificationService
             );
             $this->logEvent($application, VerificationEventTypeEnum::HOLD_CAPTURED, $admin?->id);
         });
+    }
+
+    /**
+     * Set up the ongoing monthly/annual charge after the first payment
+     * succeeds. Failure here is logged, not thrown — the person already
+     * paid their first cycle and passed identity checks, so the badge still
+     * gets granted; a missing subscription just means staff need to set up
+     * recurring billing manually for that account, not that the whole
+     * approval should fail.
+     */
+    private function startRecurringSubscription(VerificationApplication $application): void
+    {
+        $planCode = $application->billing_cycle->paystackPlanCode();
+
+        if ($planCode === '') {
+            Log::warning('No Paystack plan code configured for billing cycle — skipping subscription setup', [
+                'verification_application_id' => $application->id,
+                'billing_cycle' => $application->billing_cycle->value,
+            ]);
+
+            return;
+        }
+
+        try {
+            $subscription = $this->paystack->createSubscription(
+                email: $application->user->email,
+                planCode: $planCode,
+                authorizationReference: $application->paystack_reference,
+            );
+
+            $application->update(['paystack_subscription_code' => $subscription['subscription_code']]);
+        } catch (BusinessException $e) {
+            Log::error('Failed to create recurring verification subscription', [
+                'verification_application_id' => $application->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**

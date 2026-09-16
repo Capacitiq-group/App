@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\Verification\VerificationApplicantTypeEnum;
+use App\Enums\Verification\VerificationBillingCycleEnum;
 use App\Enums\Verification\VerificationHoldStatusEnum;
 use App\Enums\Verification\VerificationStatusEnum;
 use App\Traits\HasUuidObservable;
@@ -25,10 +26,12 @@ class VerificationApplication extends Model
     protected $fillable = [
         'user_id',
         'applicant_type',
+        'billing_cycle',
         'status',
         'didit_session_id',
         'didit_workflow_id',
         'paystack_reference',
+        'paystack_subscription_code',
         'hold_status',
         'hold_expires_at',
         'decided_manually',
@@ -44,6 +47,7 @@ class VerificationApplication extends Model
      */
     protected $attributes = [
         'applicant_type' => 'individual',
+        'billing_cycle' => 'monthly',
         'status' => 'in_progress',
         'decided_manually' => false,
     ];
@@ -57,6 +61,7 @@ class VerificationApplication extends Model
     {
         return [
             'applicant_type' => VerificationApplicantTypeEnum::class,
+            'billing_cycle' => VerificationBillingCycleEnum::class,
             'status' => VerificationStatusEnum::class,
             'hold_status' => VerificationHoldStatusEnum::class,
             'hold_expires_at' => 'datetime',

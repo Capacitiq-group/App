@@ -23,6 +23,7 @@ use App\Http\Controllers\Api\Search\HashtagController;
 use App\Http\Controllers\Api\Space\SpaceController;
 use App\Http\Controllers\Api\Story\StoryController;
 use App\Http\Controllers\Api\User\UserController;
+use App\Http\Controllers\Api\Verification\VerificationController;
 use App\Http\Controllers\Api\User\UserSettingsController;
 use App\Http\Controllers\Api\Wellness\ScreenTimeController;
 use App\Http\Controllers\Api\Wellness\WellnessRuleController;
@@ -146,6 +147,16 @@ Route::middleware(['auth:api', 'check_user_status'])->group(function () {
             Route::delete('{highlight_uuid}', [HighlightController::class, 'destroy'])->name('destroy');
             Route::post('{highlight_uuid}/stories', [HighlightController::class, 'addStory'])->name('stories.add');
             Route::delete('{highlight_uuid}/stories/{story_uuid}', [HighlightController::class, 'removeStory'])->name('stories.remove');
+        });
+
+    // verification routes (identity/business/political-entity verification intake)
+    Route::prefix('verification')
+        ->name('verification.')
+        ->group(function () {
+            Route::post('applications', [VerificationController::class, 'submit'])
+                ->middleware('throttle:5,1')
+                ->name('applications.submit');
+            Route::get('status', [VerificationController::class, 'status'])->name('status');
         });
 
     // notification routes

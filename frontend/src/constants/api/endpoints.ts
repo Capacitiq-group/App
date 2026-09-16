@@ -56,6 +56,10 @@ export const BACKEND_API_ENDPOINT = {
         UPLOAD_IMAGE: '/medias/upload-image',
         UPLOAD_VIDEO: '/medias/upload-video'
     },
+    VERIFICATION: {
+        SUBMIT: '/verification/applications',
+        STATUS: '/verification/status'
+    },
     SPACE: {
         LIST: '/spaces',
         CREATE: '/spaces',

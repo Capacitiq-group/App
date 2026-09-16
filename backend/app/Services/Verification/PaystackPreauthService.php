@@ -13,11 +13,14 @@ use Illuminate\Support\Str;
  *
  * NOTE ON ENDPOINT PATHS: Paystack's public docs describe this API's
  * behavior and parameters in detail, but this class's exact path strings
- * (/preauthorization/initialize, /capture, /release, /:reference) are
- * reconstructed from that documented behavior rather than copied from a
- * literal, confirmed API reference — verify each path against Paystack's
- * current dashboard/API reference before this goes live, the same way you'd
- * sanity-check any third-party integration before production.
+ * (/preauthorization/initialize, /capture, /release, /:reference,
+ * /subscription) are reconstructed from that documented behavior rather
+ * than copied from a literal, confirmed API reference — verify each path
+ * against Paystack's current dashboard/API reference before this goes live,
+ * the same way you'd sanity-check any third-party integration before
+ * production. The /subscription creation params in particular (whether
+ * 'authorization' takes a reference vs. an authorization_code) need
+ * confirming against a real successful preauth capture response.
  */
 class PaystackPreauthService
 {
@@ -31,21 +34,20 @@ class PaystackPreauthService
     }
 
     /**
-     * Place a preauthorization hold for the verification fee. Returns the
-     * Paystack reference and the hosted checkout URL to redirect the
-     * applicant to.
+     * Place a preauthorization hold. Returns the Paystack reference and the
+     * hosted checkout URL to redirect the applicant to.
      *
      * @return array{reference: string, authorization_url: string, access_code: string}
      *
      * @throws BusinessException On a non-2xx response from Paystack.
      */
-    public function initializeHold(string $email, string $callbackUrl, ?string $reference = null): array
+    public function initializeHold(string $email, int $amountCents, string $callbackUrl, ?string $reference = null): array
     {
         $reference ??= 'verify_'.Str::uuid()->toString();
 
         $response = $this->client()->post('/preauthorization/initialize', [
             'email' => $email,
-            'amount' => (int) config('paystack.verification.fee_cents'),
+            'amount' => $amountCents,
             'currency' => config('paystack.currency'),
             'reference' => $reference,
             'callback_url' => $callbackUrl,
@@ -62,6 +64,31 @@ class PaystackPreauthService
             'authorization_url' => $data['authorization_url'],
             'access_code' => $data['access_code'],
         ];
+    }
+
+    /**
+     * Create a recurring Paystack Subscription against a Plan, using the
+     * customer email + the authorization obtained from a prior successful
+     * charge/capture on this reference. Called once, right after the first
+     * payment is captured — not per-application before that.
+     *
+     * @return array{subscription_code: string}
+     *
+     * @throws BusinessException
+     */
+    public function createSubscription(string $email, string $planCode, string $authorizationReference): array
+    {
+        $response = $this->client()->post('/subscription', [
+            'customer' => $email,
+            'plan' => $planCode,
+            // Paystack resolves the reusable authorization from this prior
+            // transaction reference to charge automatically on renewal.
+            'authorization' => $authorizationReference,
+        ]);
+
+        $this->assertSuccessful($response, 'create recurring subscription');
+
+        return ['subscription_code' => $response->json('data.subscription_code')];
     }
 
     /**
