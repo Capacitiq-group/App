@@ -3,8 +3,9 @@ import z from 'zod'
 const configSchema = z.object({
     NEXT_PUBLIC_API_ENDPOINT: z.string().url(),
     NEXT_PUBLIC_URL: z.string().url(),
-    NEXT_PUBLIC_GOOGLE_AUTHORIZED_REDIRECT_URI: z.string().url(),
-    NEXT_PUBLIC_GOOGLE_CLIENT_ID: z.string().min(1),
+    // Google sign-in is optional: a blank value simply disables it instead of failing the build.
+    NEXT_PUBLIC_GOOGLE_AUTHORIZED_REDIRECT_URI: z.string().url().or(z.literal('')).default(''),
+    NEXT_PUBLIC_GOOGLE_CLIENT_ID: z.string().default(''),
     NEXT_APP_ENV: z.enum(['development', 'production', 'test']).default('production'),
     NEXT_PUBLIC_APP_NAME: z.string().min(2).max(100),
     NEXT_PUBLIC_COMPANY_NAME: z.string().min(2).max(100),
@@ -40,4 +41,6 @@ if (!config.success) {
 const envConfig = config.data
 
 export const isProduction = envConfig.NEXT_APP_ENV === 'production'
+export const isGoogleAuthEnabled =
+    envConfig.NEXT_PUBLIC_GOOGLE_CLIENT_ID !== '' && envConfig.NEXT_PUBLIC_GOOGLE_AUTHORIZED_REDIRECT_URI !== ''
 export default envConfig
