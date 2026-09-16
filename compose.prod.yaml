@@ -238,6 +238,7 @@ services:
       - "${KAFKA_PORT:-9092}:9092"
     environment:
       CLUSTER_ID: ${KAFKA_CLUSTER_ID:-MkU3OEVBNTcwNTJENDM2Qk}
+      KAFKA_HEAP_OPTS: "-Xms256m -Xmx768m"
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
@@ -253,7 +254,7 @@ services:
       KAFKA_NUM_PARTITIONS: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
     volumes:
-      - kafka-data-production:/var/lib/kafka/data
+      - kafka-data-production-v2:/var/lib/kafka/data
     networks:
       - app-production
     healthcheck:
@@ -339,4 +340,4 @@ volumes:
   postgres-data-production:
   laravel-storage-production:
   minio-data-production:
-  kafka-data-production:
+  kafka-data-production-v2:
