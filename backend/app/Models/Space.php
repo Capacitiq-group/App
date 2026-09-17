@@ -6,6 +6,7 @@ use App\Enums\Space\SpaceDiscoveryScopeEnum;
 use App\Enums\Space\SpaceEndedReasonEnum;
 use App\Enums\Space\SpaceParticipantRoleEnum;
 use App\Enums\Space\SpaceStatusEnum;
+use App\Enums\Space\SpaceTypeEnum;
 use App\Traits\HasUuidObservable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
@@ -28,6 +29,8 @@ class Space extends Model
         'description',
         'topic_id',
         'discovery_scope',
+        'type',
+        'ticket_price_cents',
         'status',
         'min_to_start',
         'min_to_continue',
@@ -45,6 +48,7 @@ class Space extends Model
      */
     protected $attributes = [
         'discovery_scope'  => 'public',
+        'type'             => 'public',
         'status'           => 'waiting',
         'min_to_start'     => 5,
         'min_to_continue'  => 2,
@@ -62,6 +66,8 @@ class Space extends Model
     {
         return [
             'discovery_scope'    => SpaceDiscoveryScopeEnum::class,
+            'type'               => SpaceTypeEnum::class,
+            'ticket_price_cents' => 'integer',
             'status'             => SpaceStatusEnum::class,
             'ended_reason'       => SpaceEndedReasonEnum::class,
             'min_to_start'       => 'integer',
@@ -161,6 +167,42 @@ class Space extends Model
     public function bans(): HasMany
     {
         return $this->hasMany(SpaceBan::class);
+    }
+
+    /**
+     * Get this Space's invitation allowlist (Private Spaces only).
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany The relationship instance.
+     */
+    public function invitations(): HasMany
+    {
+        return $this->hasMany(SpaceInvitation::class);
+    }
+
+    /**
+     * Get the tickets sold for this Space.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany The relationship instance.
+     */
+    public function tickets(): HasMany
+    {
+        return $this->hasMany(SpaceTicket::class);
+    }
+
+    /**
+     * Whether this Space requires an invitation to join.
+     */
+    public function isPrivate(): bool
+    {
+        return $this->type === SpaceTypeEnum::PRIVATE;
+    }
+
+    /**
+     * Whether this Space requires a purchased ticket to join.
+     */
+    public function isTicketed(): bool
+    {
+        return $this->ticket_price_cents !== null;
     }
 
     /**

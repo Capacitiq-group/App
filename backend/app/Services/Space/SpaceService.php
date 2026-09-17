@@ -8,6 +8,7 @@ use App\Enums\Space\SpaceEndedReasonEnum;
 use App\Enums\Space\SpaceParticipantRoleEnum;
 use App\Enums\Space\SpaceSpeakRequestStatusEnum;
 use App\Enums\Space\SpaceStatusEnum;
+use App\Enums\Space\SpaceTypeEnum;
 use App\Events\Space\SpaceEndedEvent;
 use App\Events\Space\SpaceParticipantMutedEvent;
 use App\Events\Space\SpaceParticipantRemovedEvent;
@@ -25,6 +26,7 @@ use App\Repositories\SpaceBanRepository;
 use App\Repositories\SpaceParticipantRepository;
 use App\Repositories\SpaceRepository;
 use App\Repositories\SpaceSpeakRequestRepository;
+use App\Repositories\SpaceTicketRepository;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -35,7 +37,9 @@ class SpaceService
         private readonly SpaceParticipantRepository $participantRepository,
         private readonly SpaceSpeakRequestRepository $speakRequestRepository,
         private readonly SpaceBanRepository $banRepository,
+        private readonly SpaceTicketRepository $ticketRepository,
         private readonly AgoraTokenService $agoraTokenService,
+        private readonly SpaceTicketService $ticketService,
     ) {}
 
     /**
@@ -44,16 +48,24 @@ class SpaceService
      * including the host, not 4 more besides them. Flagging this reading
      * explicitly since the original rule was stated in plain language.
      *
-     * @param  array{title: string, description?: string|null, topic_id?: int|null, discovery_scope?: string}  $payload
+     * @param  array{title: string, description?: string|null, topic_id?: int|null, discovery_scope?: string, type?: string, ticket_price_cents?: int|null}  $payload
      *
-     * @throws BusinessException If the host is not eligible, is rate-limited,
-     *                            or already has an active/waiting Space.
+     * @throws ForbiddenException|BusinessException If the host is not
+     *          eligible, is rate-limited, already has an active/waiting
+     *          Space, or tries to sell tickets without being eligible to.
      */
     public function create(User $host, array $payload): Space
     {
         $this->assertCanHost($host);
 
-        return DB::transaction(function () use ($host, $payload): Space {
+        $type = SpaceTypeEnum::from($payload['type'] ?? SpaceTypeEnum::PUBLIC->value);
+        $ticketPriceCents = $payload['ticket_price_cents'] ?? null;
+
+        if ($ticketPriceCents !== null) {
+            $this->assertCanSellTickets($host, $type);
+        }
+
+        return DB::transaction(function () use ($host, $payload, $type, $ticketPriceCents): Space {
             $defaults = config('agora.defaults');
 
             $space = $this->spaceRepository->create([
@@ -62,6 +74,8 @@ class SpaceService
                 'description' => $payload['description'] ?? null,
                 'topic_id' => $payload['topic_id'] ?? null,
                 'discovery_scope' => $payload['discovery_scope'] ?? 'public',
+                'type' => $type->value,
+                'ticket_price_cents' => $ticketPriceCents,
                 'status' => SpaceStatusEnum::WAITING->value,
                 'min_to_start' => $defaults['min_to_start'],
                 'min_to_continue' => $defaults['min_to_continue'],
@@ -85,6 +99,46 @@ class SpaceService
     }
 
     /**
+     * Invite a user to a Private Space. Host/co-host only.
+     *
+     * @throws ForbiddenException|BusinessException
+     */
+    public function inviteToPrivateSpace(Space $space, User $actingUser, User $invitee): void
+    {
+        $this->assertCanModerate($space, $actingUser);
+
+        if (! $space->isPrivate()) {
+            throw new BusinessException('Only Private Spaces use invitations — this Space is open to everyone it\'s discoverable to.');
+        }
+
+        $space->invitations()->firstOrCreate(
+            ['invited_user_id' => $invitee->id],
+            ['invited_by_user_id' => $actingUser->id],
+        );
+    }
+
+    /**
+     * Buy a ticket for a Creator Space. Returns the pending ticket and the
+     * Paystack checkout URL.
+     *
+     * @return array{ticket: \App\Models\SpaceTicket, authorization_url: string}
+     *
+     * @throws BusinessException
+     */
+    public function purchaseTicket(Space $space, User $buyer, string $callbackUrl): array
+    {
+        if (! $space->isTicketed()) {
+            throw new BusinessException('This Space does not require a ticket.');
+        }
+
+        if ($space->host_user_id === $buyer->id) {
+            throw new BusinessException('You already have access as the host.');
+        }
+
+        return $this->ticketService->purchase($space, $buyer, $callbackUrl);
+    }
+
+    /**
      * Join a Space as a listener (or return the existing session + a fresh
      * token if already active). Activates the Space if this join reaches
      * min_to_start.
@@ -101,6 +155,24 @@ class SpaceService
 
         if ($this->banRepository->isBanned($space, $user->id)) {
             throw new ForbiddenException('You have been removed from this Space and cannot rejoin.');
+        }
+
+        $isHost = $space->host_user_id === $user->id;
+
+        if (! $isHost && $space->isPrivate()) {
+            $isInvited = $space->invitations()->where('invited_user_id', $user->id)->exists();
+
+            if (! $isInvited) {
+                throw new ForbiddenException('This is a Private Space — you need an invitation to join.');
+            }
+        }
+
+        if (! $isHost && $space->isTicketed()) {
+            $hasTicket = $this->ticketRepository->hasCompletedTicket($space, $user->id);
+
+            if (! $hasTicket) {
+                throw new BusinessException('This Space requires a ticket — purchase one to join.');
+            }
         }
 
         $existing = $this->participantRepository->activeParticipant($space, $user->id);
@@ -482,6 +554,10 @@ class SpaceService
             throw new ForbiddenException('Your account is not in good standing.');
         }
 
+        if ((bool) config('agora.host_requires_verification') && ! $host->isVerified()) {
+            throw new ForbiddenException('Only verified accounts can host a Space right now.');
+        }
+
         if ($minAgeYears > 0 && ($host->age() === null || $host->age() < $minAgeYears)) {
             throw new ForbiddenException("You must be {$minAgeYears}+ to host a Space.");
         }
@@ -492,6 +568,27 @@ class SpaceService
 
         if ($this->spaceRepository->countHostedInLast7Days($host->id) >= $maxPerWeek) {
             throw new BusinessException("You can only host {$maxPerWeek} Spaces per rolling 7 days.");
+        }
+    }
+
+    /**
+     * Ticketed Spaces are always Creator-type and always require a verified
+     * host — unlike general hosting eligibility, this isn't behind the
+     * host_requires_verification "soon" flag. Selling tickets is a today
+     * requirement per the platform spec ("a verified creator can create a
+     * ticketed Space"), independent of whether hosting in general has been
+     * locked down to verified users yet.
+     *
+     * @throws ForbiddenException|BusinessException
+     */
+    private function assertCanSellTickets(User $host, SpaceTypeEnum $type): void
+    {
+        if (! $type->canBeTicketed()) {
+            throw new BusinessException('Only Creator Spaces can sell tickets.');
+        }
+
+        if (! $host->isVerified()) {
+            throw new ForbiddenException('You must be a verified creator to sell tickets for a Space.');
         }
     }
 

@@ -24,4 +24,16 @@ return [
     'host_min_public_posts'     => (int) env('SPACE_HOST_MIN_PUBLIC_POSTS', 3),
     'host_min_age_years'        => (int) env('SPACE_HOST_MIN_AGE_YEARS', 18),
     'host_max_per_rolling_week' => (int) env('SPACE_HOST_MAX_PER_ROLLING_WEEK', 3),
+
+    // "Soon: only verified users can host a Space." Off by default so
+    // hosting stays open today — flip to true when that rule actually goes
+    // live, no code change needed. Ticketed (Creator-type) Spaces require
+    // verification regardless of this flag — that part isn't "soon", it's
+    // already a hard requirement (see SpaceService::assertCanHost()).
+    'host_requires_verification' => (bool) env('SPACE_HOST_REQUIRES_VERIFICATION', false),
+
+    'tickets' => [
+        // Configurable, not hardcoded — a whole number percentage (10 = 10%).
+        'platform_fee_percentage' => (int) env('SPACE_TICKET_PLATFORM_FEE_PERCENTAGE', 10),
+    ],
 ];

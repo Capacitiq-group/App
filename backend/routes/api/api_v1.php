@@ -109,6 +109,8 @@ Route::middleware(['auth:api', 'check_user_status'])->group(function () {
             Route::post('/', [SpaceController::class, 'create'])->middleware('throttle:10,1')->name('create');
             Route::get('{space_uuid}', [SpaceController::class, 'show'])->name('show');
             Route::post('{space_uuid}/join', [SpaceController::class, 'join'])->name('join');
+            Route::post('{space_uuid}/invite', [SpaceController::class, 'invite'])->name('invite');
+            Route::post('{space_uuid}/tickets', [SpaceController::class, 'purchaseTicket'])->middleware('throttle:10,1')->name('tickets.purchase');
             Route::post('{space_uuid}/token', [SpaceController::class, 'refreshToken'])->name('token.refresh');
             Route::post('{space_uuid}/leave', [SpaceController::class, 'leave'])->name('leave');
             Route::post('{space_uuid}/end', [SpaceController::class, 'end'])->name('end');
