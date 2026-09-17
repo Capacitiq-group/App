@@ -231,9 +231,10 @@ services:
     restart: unless-stopped
 
   kafka:
-    image: confluentinc/cp-kafka:7.6.1
+    image: apache/kafka:3.8.1
     container_name: ${CONTAINER_PREFIX:-snapi}_kafka
     restart: unless-stopped
+    user: "0:0"
     ports:
       - "${KAFKA_PORT:-9092}:9092"
     environment:
@@ -247,6 +248,7 @@ services:
       KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:29092,EXTERNAL://localhost:${KAFKA_PORT:-9092}
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
@@ -254,19 +256,19 @@ services:
       KAFKA_NUM_PARTITIONS: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
     volumes:
-      - kafka-data-production-v2:/var/lib/kafka/data
+      - kafka-data-production-v3:/var/lib/kafka/data
     networks:
       - app-production
     healthcheck:
       test:
         [
           "CMD-SHELL",
-          "kafka-broker-api-versions --bootstrap-server kafka:29092 >/dev/null 2>&1",
+          "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server kafka:29092 >/dev/null 2>&1",
         ]
       interval: 10s
       timeout: 10s
-      retries: 15
-      start_period: 45s
+      retries: 20
+      start_period: 60s
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
@@ -340,4 +342,4 @@ volumes:
   postgres-data-production:
   laravel-storage-production:
   minio-data-production:
-  kafka-data-production-v2:
+  kafka-data-production-v3:
