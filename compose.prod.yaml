@@ -58,10 +58,13 @@ services:
     volumes:
       - laravel-storage-production:/var/www/storage
     healthcheck:
+      # The entrypoint runs database migrations and repairs the system admin
+      # before starting FPM. Give that one-time bootstrap enough time to finish.
       test: ["CMD-SHELL", "php-fpm-healthcheck || exit 1"]
       interval: 10s
       timeout: 5s
-      retries: 3
+      retries: 6
+      start_period: 180s
     depends_on:
       postgres:
         condition: service_healthy
