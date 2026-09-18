@@ -124,7 +124,7 @@ services:
 
   postgres:
     container_name: ${CONTAINER_PREFIX:-snapi}_postgres
-    image: postgres:12.7
+    image: pgvector/pgvector:pg16
     restart: unless-stopped
     user: postgres
     ports:
