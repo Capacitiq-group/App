@@ -49,6 +49,9 @@ services:
       APP_DEBUG: "false"
       DB_HOST: postgres
       REDIS_HOST: redis
+      # php-fpm is the single owner of database bootstrap for the stack.
+      RUN_MIGRATIONS: "true"
+      RUN_SYSTEM_ADMIN: "true"
     command: ["php-fpm", "-F"]
     networks:
       - app-production
@@ -199,6 +202,53 @@ services:
       retries: 5
       start_period: 30s
 
+  minio:
+    image: quay.io/minio/minio:RELEASE.2025-02-03T21-03-04Z
+    container_name: ${CONTAINER_PREFIX:-snapi}_minio
+    restart: unless-stopped
+    command: minio server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minio_root_user}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minio_root_password}
+    volumes:
+      - minio-data-production:/data
+    expose:
+      - "9000"
+      - "9001"
+    networks:
+      - app-production
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "mc ready local || exit 1",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  minio-init:
+    image: quay.io/minio/mc:latest
+    container_name: ${CONTAINER_PREFIX:-snapi}_minio_init
+    restart: "no"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minio_root_user}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minio_root_password}
+      MINIO_BUCKET: ${AWS_BUCKET:-snapi}
+    entrypoint:
+      - /bin/sh
+      - -c
+      - >
+        mc alias set local http://minio:9000 "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD" &&
+        mc mb --ignore-existing "local/$$MINIO_BUCKET" &&
+        mc anonymous set download "local/$$MINIO_BUCKET"
+    depends_on:
+      minio:
+        condition: service_healthy
+    networks:
+      - app-production
+
   mailcatcher:
     image: dockage/mailcatcher:0.7.1
     container_name: ${CONTAINER_PREFIX:-snapi}_mailcatcher
@@ -271,6 +321,8 @@ services:
 
   ai-serve:
     container_name: ${CONTAINER_PREFIX:-snapi}_ai_serve
+    profiles:
+      - ai
     build:
       context: .
       dockerfile: ./.docker/common/ai/serve/Dockerfile
@@ -299,6 +351,8 @@ services:
 
   ai-worker:
     container_name: ${CONTAINER_PREFIX:-snapi}_ai_worker
+    profiles:
+      - ai
     build:
       context: .
       dockerfile: ./.docker/common/ai/serve/Dockerfile
@@ -321,5 +375,6 @@ networks:
 
 volumes:
   postgres-data-production:
+  minio-data-production:
   laravel-storage-production:
   kafka-data-production-v3:
