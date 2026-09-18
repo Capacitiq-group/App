@@ -95,8 +95,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      kafka:
-        condition: service_healthy
 
   reverb:
     container_name: ${CONTAINER_PREFIX:-snapi}_reverb
@@ -137,7 +135,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-root}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-Snapi_password}
     volumes:
-      - postgres-data-production:/var/lib/postgresql
+      - postgres-data-production-v2:/var/lib/postgresql/data
     networks:
       - app-production
     healthcheck:
@@ -264,6 +262,8 @@ services:
   kafka:
     image: apache/kafka:3.8.1
     container_name: ${CONTAINER_PREFIX:-snapi}_kafka
+    profiles:
+      - ai
     restart: unless-stopped
     user: "0:0"
     ports:
@@ -374,7 +374,7 @@ networks:
   app-production:
 
 volumes:
-  postgres-data-production:
+  postgres-data-production-v2:
   minio-data-production:
   laravel-storage-production:
   kafka-data-production-v3:
