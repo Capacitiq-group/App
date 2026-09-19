@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Tip;
+namespace App\Services\Payment;
 
 use App\Exceptions\http\BusinessException;
 use Illuminate\Support\Facades\Http;

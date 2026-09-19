@@ -15,6 +15,8 @@ class SpaceResource extends BaseJsonResource
             'description' => $this->description,
             'topic_id' => $this->topic_id,
             'discovery_scope' => $this->discovery_scope->value,
+            'type' => $this->type->value,
+            'ticket_price_cents' => $this->ticket_price_cents,
             'status' => $this->status->value,
             'host' => UserResource::make($this->whenLoaded('host')),
             'min_to_start' => $this->min_to_start,

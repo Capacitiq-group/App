@@ -7,11 +7,13 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Space\BanParticipantRequest;
 use App\Http\Requests\Space\CreateSpaceRequest;
 use App\Http\Requests\Space\EndSpaceRequest;
+use App\Http\Requests\Space\InviteToSpaceRequest;
 use App\Http\Requests\Space\JoinSpaceRequest;
 use App\Http\Requests\Space\LeaveSpaceRequest;
 use App\Http\Requests\Space\ListSpacesRequest;
 use App\Http\Requests\Space\ListSpeakRequestsRequest;
 use App\Http\Requests\Space\ModerateParticipantRequest;
+use App\Http\Requests\Space\PurchaseSpaceTicketRequest;
 use App\Http\Requests\Space\RefreshAgoraTokenRequest;
 use App\Http\Requests\Space\RequestToSpeakRequest;
 use App\Http\Requests\Space\ResolveSpeakRequestRequest;
@@ -19,6 +21,7 @@ use App\Http\Requests\Space\ShowSpaceRequest;
 use App\Http\Resources\Api\Space\SpaceParticipantResource;
 use App\Http\Resources\Api\Space\SpaceResource;
 use App\Http\Resources\Api\Space\SpaceSpeakRequestResource;
+use App\Http\Resources\Api\Space\SpaceTicketResource;
 use App\Http\Response\ApiResponse;
 use App\Repositories\SpaceRepository;
 use App\Repositories\UserRepository;
@@ -46,6 +49,39 @@ class SpaceController extends Controller
         return ApiResponse::created(
             data: new SpaceResource($space->load('host')),
             message: 'Space created — waiting for participants'
+        );
+    }
+
+    /**
+     * Invite a user to a Private Space. Host/co-host only.
+     */
+    public function invite(InviteToSpaceRequest $request): \Illuminate\Http\Response
+    {
+        $space = $this->spaceRepository->findByUuidOrFail($request->validated('space_uuid'));
+        $invitee = $this->userRepository->findByUuidOrFail($request->validated('invitee_user_uuid'));
+
+        $this->spaceService->inviteToPrivateSpace($space, $this->guard()->user(), $invitee);
+
+        return ApiResponse::noContent();
+    }
+
+    /**
+     * Buy a ticket for a Creator Space.
+     */
+    public function purchaseTicket(PurchaseSpaceTicketRequest $request): JsonResponse
+    {
+        $space = $this->spaceRepository->findByUuidOrFail($request->validated('space_uuid'));
+
+        $callbackUrl = (string) $request->validated('callback_url', config('app.frontend_url').'/spaces/tickets/callback');
+
+        $result = $this->spaceService->purchaseTicket($space, $this->guard()->user(), $callbackUrl);
+
+        return ApiResponse::created(
+            data: [
+                'ticket' => new SpaceTicketResource($result['ticket']),
+                'paystack_authorization_url' => $result['authorization_url'],
+            ],
+            message: 'Ticket purchase started — complete payment to confirm'
         );
     }
 

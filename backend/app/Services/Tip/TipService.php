@@ -8,6 +8,7 @@ use App\Exceptions\http\BusinessException;
 use App\Models\Tip;
 use App\Models\User;
 use App\Repositories\TipRepository;
+use App\Services\Payment\PaystackTransactionService;
 use App\Services\Wallet\WalletService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;

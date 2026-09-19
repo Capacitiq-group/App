@@ -99,7 +99,7 @@ return Application::configure(basePath: dirname(__DIR__))
                     Response::HTTP_METHOD_NOT_ALLOWED
                 ),
 
-                default => app()->isProduction()
+                default => ! app()->hasDebugModeEnabled()
                     ? ApiResponse::error(
                         'Internal Server Error',
                         Response::HTTP_INTERNAL_SERVER_ERROR

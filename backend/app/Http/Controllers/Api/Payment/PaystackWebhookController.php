@@ -3,13 +3,15 @@
 namespace App\Http\Controllers\Api\Payment;
 
 use App\Http\Controllers\Controller;
-use App\Services\Tip\PaystackTransactionService;
+use App\Services\Payment\PaystackTransactionService;
+use App\Services\Space\SpaceTicketService;
 use App\Services\Tip\TipService;
 use App\Services\Verification\PaystackPreauthService;
 use App\Services\Verification\VerificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class PaystackWebhookController extends Controller
 {
@@ -17,6 +19,7 @@ class PaystackWebhookController extends Controller
         private readonly PaystackPreauthService $preauth,
         private readonly VerificationService $verificationService,
         private readonly TipService $tipService,
+        private readonly SpaceTicketService $ticketService,
     ) {}
 
     /**
@@ -50,7 +53,7 @@ class PaystackWebhookController extends Controller
             match ($event) {
                 'preauthorization.capture.success' => $this->verificationService->handleCaptureWebhookConfirmation($reference),
                 'preauthorization.capture.failed' => $this->verificationService->handleCaptureFailedAfterApproval($reference),
-                'charge.success' => $this->tipService->completeTip($reference),
+                'charge.success' => $this->handleChargeSuccess($reference),
                 default => null,
             };
         } catch (\Throwable $e) {
@@ -66,5 +69,21 @@ class PaystackWebhookController extends Controller
         }
 
         return response()->json(['received' => true]);
+    }
+
+    /**
+     * charge.success fires for every plain one-time Transaction on the
+     * account — tips and Space tickets both use this API, distinguished
+     * only by their reference prefix ('tip_' vs 'ticket_'). Routing by
+     * prefix avoids querying the wrong table twice; both services also
+     * no-op safely on an unrecognized reference regardless.
+     */
+    private function handleChargeSuccess(string $reference): void
+    {
+        match (true) {
+            Str::startsWith($reference, 'tip_') => $this->tipService->completeTip($reference),
+            Str::startsWith($reference, 'ticket_') => $this->ticketService->completePurchase($reference),
+            default => Log::info('charge.success for an unrecognized reference prefix', ['reference' => $reference]),
+        };
     }
 }
